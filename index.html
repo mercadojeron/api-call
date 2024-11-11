@@ -3,24 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Market Data API Project</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>Stock Market Dashboard</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+
+        #search {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+            margin-right: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        #searchButton {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #searchButton:hover {
+            background-color: #45a049;
+        }
+
+        .pagination {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .pagination button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #4CAF50;
+            color: white;
+            margin: 0 5px;
+        }
+
+        .pagination button:hover {
+            background-color: #45a049;
+        }
+
+        #error {
+            color: red;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+<body>
+    <h1>Stock Market Dashboard</h1>
+    <input type="text" id="search" placeholder="Enter stock symbol (e.g., AAPL)" list="stockSymbols">
+    <datalist id="stockSymbols">
+        <option value="AAPL">
+        <option value="GOOGL">
+        <option value="TSLA">
+        <option value="AMZN">
+        <option value="MSFT">
+        <option value="META">
+        <option value="NFLX">
+        <option value="NVDA">
+        <option value="SPY">
+        <option value="AMD">
+        <!-- Limit the symbols listed here to prevent excessive query size -->
+    </datalist>
+    <button id="searchButton">Search</button>
+    <p id="error"></p>
 
-    <div class="container mx-auto p-4">
-        <h1 class="text-3xl md:text-4xl font-bold mb-4 text-center">Market Data</h1>
-        
-        <div id="dataContainer" class="bg-white p-4 shadow rounded mb-4">
-            <!-- Data from API will be displayed here -->
-        </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Date</th>
+                <th>Open</th>
+                <th>Close</th>
+                <th>High</th>
+                <th>Low</th>
+                <th>Volume</th>
+            </tr>
+        </thead>
+        <tbody id="stockBody">
+        </tbody>
+    </table>
 
-        <div class="flex justify-between space-x-2">
-            <button id="prevButton" class="bg-blue-500 text-white px-4 py-2 rounded w-full md:w-auto" disabled>Previous</button>
-            <button id="nextButton" class="bg-blue-500 text-white px-4 py-2 rounded w-full md:w-auto">Next</button>
-        </div>
+    <div class="pagination">
+        <button id="prevBtn" disabled>Previous</button>
+        <button id="nextBtn" disabled>Next</button>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        const apiKey = 'ea66ca047dda977abc2fb994519b29eb'; // My API Key
+        const recordsPerPage = 5; // Number of records per page
+        let currentPage = 1; // Start on the first page
+        let symbol = ''; // Stock symbol to search for
+
+        // Fetch stock data
+        async function fetchStockData() {
+            const errorElement = document.getElementById("error");
+            errorElement.textContent = ''; // Clear any previous errors
+
+            // Check if symbol is valid before making the request
+            if (!symbol) {
+                errorElement.textContent = 'Please enter a valid stock symbol.';
+                return;
+            }
+
+            try {
+                const url = `https://api.marketstack.com/v1/eod?access_key=${apiKey}&symbols=${symbol}&limit=${recordsPerPage}&offset=${(currentPage - 1) * recordsPerPage}`;
+                console.log('Request URL:', url); // Debugging log
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                // Check for errors in the API response
+                if (data.error) {
+                    errorElement.textContent = 'Failed to fetch data. Please check the symbol or API Key.';
+                    return;
+                }
+
+                // Update the table with the fetched data
+                updateTable(data.data);
+
+                // Enable/Disable the pagination buttons based on data
+                document.getElementById("prevBtn").disabled = currentPage <= 1;
+                document.getElementById("nextBtn").disabled = data.data.length < recordsPerPage;
+            } catch (error) {
+                errorElement.textContent = 'An error occurred while fetching the data.';
+                console.error(error); // Debugging log
+            }
+        }
+
+        // Update the HTML table
+        function updateTable(data) {
+            const tableBody = document.getElementById("stockBody");
+            tableBody.innerHTML = ''; // Clear previous rows
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.symbol}</td>
+                    <td>${new Date(item.date).toLocaleDateString()}</td>
+                    <td>${item.open}</td>
+                    <td>${item.close}</td>
+                    <td>${item.high}</td>
+                    <td>${item.low}</td>
+                    <td>${item.volume}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Search button click event
+        document.getElementById("searchButton").addEventListener('click', () => {
+            symbol = document.getElementById("search").value.trim().toUpperCase();
+            if (symbol) {
+                currentPage = 1; // Reset to the first page for a new search
+                fetchStockData();
+            }
+        });
+
+        // Previous button click event
+        document.getElementById("prevBtn").addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                fetchStockData();
+            }
+        });
+
+        // Next button click event
+        document.getElementById("nextBtn").addEventListener('click', () => {
+            currentPage++;
+            fetchStockData();
+        });
+    </script>
 </body>
 </html>

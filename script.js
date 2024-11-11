@@ -1,59 +1,62 @@
-const apiKey = 'd0b0729f5493df0b1ad08db3f9b28b83';
-const corsProxy = 'https://cors-anywhere.herokuapp.com/';
-const baseUrl = 'https://api.marketstack.com/v1/eod';
-const symbol = 'AAPL';
-let currentPage = 1;
+const apiKey = 'ea66ca047dda977abc2fb994519b29eb'; // Your Marketstack API key
+const apiUrl = 'http://api.marketstack.com/v1/eod';
 
-async function fetchStockData(page = 1) {
+// Function to fetch stock data
+async function fetchStockData(symbol) {
+    const url = `${apiUrl}?access_key=${apiKey}&symbols=${symbol}`;
+    console.log(`Fetching data from: ${url}`);
+
     try {
-        const url = `${corsProxy}${baseUrl}?access_key=${apiKey}&symbols=${symbol}&limit=10&offset=${(page - 1) * 10}`;
-        console.log("Request URL:", url); // Debugging: Log the full URL being requested
         const response = await fetch(url);
 
+        // Check if the response is OK (status code 200-299)
         if (!response.ok) {
-            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+            throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
         }
 
         const data = await response.json();
-        displayData(data);
-        
-        document.getElementById('prevButton').disabled = page === 1;
+
+        // Check if there is any data returned
+        if (!data.data || data.data.length === 0) {
+            document.getElementById('error').textContent = 'No data found. Try another search.';
+            return;
+        }
+
+        // Call the function to display stock data
+        displayStockData(data.data);
+        document.getElementById('error').textContent = ''; // Clear any previous error messages
     } catch (error) {
-        console.error("Fetch Error:", error);
-        alert(`Failed to fetch data: ${error.message}`);
+        console.error('Fetch error:', error);
+        document.getElementById('error').textContent = 'Failed to fetch data. Please check your API URL and key.';
     }
 }
 
-function displayData(data) {
-    const container = document.getElementById('dataContainer');
-    container.innerHTML = '';
+// Function to display stock data in the table
+function displayStockData(stocks) {
+    const tableBody = document.getElementById('stockBody');
+    tableBody.innerHTML = ''; // Clear previous data
 
-    if (data.data && data.data.length > 0) {
-        data.data.forEach(item => {
-            const div = document.createElement('div');
-            div.classList = 'p-2 border-b border-gray-200';
-            div.innerHTML = `
-                <p><strong>Date:</strong> ${item.date}</p>
-                <p><strong>Symbol:</strong> ${item.symbol}</p>
-                <p><strong>Close Price:</strong> ${item.close}</p>
-            `;
-            container.appendChild(div);
-        });
+    stocks.forEach(stock => {
+        const row = `
+            <tr>
+                <td>${stock.symbol || 'N/A'}</td>
+                <td>${new Date(stock.date).toLocaleDateString() || 'N/A'}</td>
+                <td>${stock.open.toFixed(2) || 'N/A'}</td>
+                <td>${stock.close.toFixed(2) || 'N/A'}</td>
+                <td>${stock.high.toFixed(2) || 'N/A'}</td>
+                <td>${stock.low.toFixed(2) || 'N/A'}</td>
+                <td>${stock.volume.toLocaleString() || 'N/A'}</td>
+            </tr>`;
+        tableBody.insertAdjacentHTML('beforeend', row);
+    });
+}
+
+// Event listener for the search button
+document.getElementById('searchButton').addEventListener('click', () => {
+    const searchTerm = document.getElementById('search').value.trim().toUpperCase();
+    if (searchTerm) {
+        fetchStockData(searchTerm);
     } else {
-        container.innerHTML = '<p>No data available</p>';
-    }
-}
-
-document.getElementById('nextButton').addEventListener('click', () => {
-    currentPage++;
-    fetchStockData(currentPage);
-});
-
-document.getElementById('prevButton').addEventListener('click', () => {
-    if (currentPage > 1) {
-        currentPage--;
-        fetchStockData(currentPage);
+        document.getElementById('error').textContent = 'Please enter a stock symbol to search.';
     }
 });
-
-fetchStockData(currentPage);
