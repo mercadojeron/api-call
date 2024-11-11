@@ -5,42 +5,85 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Market Dashboard</title>
     <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 10px;
-            border: 1px solid #ddd;
-            text-align: center;
-        }
-        th {
-            background-color: #f4f4f4;
+        /* Global Styles */
+        body {
+            background: linear-gradient(120deg, #f06, #ff8c00);
+            font-family: 'Arial', sans-serif;
+            color: #fff;
+            margin: 0;
+            padding: 0;
         }
 
+        h1 {
+            text-align: center;
+            font-size: 3rem;
+            margin-top: 50px;
+            color: #fff;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Search Bar and Button Styles */
         #search {
-            padding: 10px;
+            padding: 12px;
             font-size: 16px;
             width: 300px;
             margin-right: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
+            border-radius: 8px;
+            border: 2px solid #ff8c00;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        #search:focus {
+            border-color: #f06;
         }
 
         #searchButton {
-            padding: 10px 20px;
+            padding: 12px 25px;
             font-size: 16px;
             cursor: pointer;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            background-color: #4CAF50;
+            border-radius: 8px;
+            border: 2px solid #ff8c00;
+            background-color: #ff8c00;
             color: white;
+            transition: background-color 0.3s, transform 0.2s;
         }
 
         #searchButton:hover {
-            background-color: #45a049;
+            background-color: #f06;
+            transform: scale(1.05);
         }
 
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        th, td {
+            padding: 15px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f06;
+            color: white;
+            font-size: 18px;
+        }
+
+        td {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        td:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Pagination Buttons */
         .pagination {
             margin-top: 20px;
             display: flex;
@@ -48,42 +91,60 @@
         }
 
         .pagination button {
-            padding: 10px 20px;
+            padding: 12px 20px;
             font-size: 16px;
             cursor: pointer;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            background-color: #4CAF50;
+            border-radius: 8px;
+            border: 2px solid #ff8c00;
+            background-color: #ff8c00;
             color: white;
             margin: 0 5px;
+            transition: background-color 0.3s, transform 0.2s;
         }
 
         .pagination button:hover {
-            background-color: #45a049;
+            background-color: #f06;
+            transform: scale(1.05);
         }
 
+        .pagination button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Error Message */
         #error {
-            color: red;
+            color: #ff4c4c;
+            text-align: center;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        /* Input Box Styling */
+        #search {
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
     <h1>Stock Market Dashboard</h1>
-    <input type="text" id="search" placeholder="Enter stock symbol (e.g., AAPL)" list="stockSymbols">
-    <datalist id="stockSymbols">
-        <option value="AAPL">
-        <option value="GOOGL">
-        <option value="TSLA">
-        <option value="AMZN">
-        <option value="MSFT">
-        <option value="META">
-        <option value="NFLX">
-        <option value="NVDA">
-        <option value="SPY">
-        <option value="AMD">
-        <!-- Limit the symbols listed here to prevent excessive query size -->
-    </datalist>
-    <button id="searchButton">Search</button>
+    <div style="text-align: center;">
+        <input type="text" id="search" placeholder="Enter stock symbol (e.g., AAPL)" list="stockSymbols">
+        <datalist id="stockSymbols">
+            <option value="AAPL">
+            <option value="GOOGL">
+            <option value="TSLA">
+            <option value="AMZN">
+            <option value="MSFT">
+            <option value="META">
+            <option value="NFLX">
+            <option value="NVDA">
+            <option value="SPY">
+            <option value="AMD">
+        </datalist>
+        <button id="searchButton">Search</button>
+    </div>
+
     <p id="error"></p>
 
     <table>
@@ -108,7 +169,7 @@
     </div>
 
     <script>
-        const apiKey = 'ea66ca047dda977abc2fb994519b29eb'; // My API Key
+        const apiKey = 'ea66ca047dda977abc2fb994519b29eb'; // Your Marketstack API key
         const recordsPerPage = 5; // Number of records per page
         let currentPage = 1; // Start on the first page
         let symbol = ''; // Stock symbol to search for
