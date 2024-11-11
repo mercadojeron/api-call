@@ -1,21 +1,21 @@
-const apiKey = 'd0b0729f5493df0b1ad08db3f9b28b83';
+const apiKey = 'd0b0729f5493df0b1ad08db3f9b28b83'; // Your Marketstack API key
 
-// Use the CORS proxy with temporary access (make sure you visit https://cors-anywhere.herokuapp.com/corsdemo)
-const corsProxy = 'https://cors-anywhere.herokuapp.com/';
+// Use All Origins proxy to bypass CORS issues
+const corsProxy = 'https://api.allorigins.win/raw?url=';
 const baseUrl = 'https://api.marketstack.com/v1/eod';
-const symbol = 'AAPL';
+const symbol = 'AAPL'; // The stock symbol you want to query (Apple in this case)
 let currentPage = 1;
 
 async function fetchStockData(page = 1) {
     try {
         // Construct the full URL with the CORS proxy and Marketstack API
-        const url = `${corsProxy}${baseUrl}?access_key=${apiKey}&symbols=${symbol}&limit=10&offset=${(page - 1) * 10}`;
+        const url = `${corsProxy}https://api.marketstack.com/v1/eod?access_key=${apiKey}&symbols=${symbol}&limit=10&offset=${(page - 1) * 10}`;
         console.log("Request URL:", url); // Log the full URL for debugging
         
         // Fetch data from the API
         const response = await fetch(url);
 
-        // Check if response is okay
+        // Check if the response is okay
         if (!response.ok) {
             throw new Error(`Error: ${response.status} - ${response.statusText}`);
         }
