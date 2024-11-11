@@ -1,15 +1,21 @@
 const apiKey = 'd0b0729f5493df0b1ad08db3f9b28b83';
-const corsProxy = 'https://cors-anywhere.herokuapp.com/';
+
+// Use an alternate CORS proxy
+const corsProxy = 'https://thingproxy.freeboard.io/fetch/';
 const baseUrl = 'https://api.marketstack.com/v1/eod';
 const symbol = 'AAPL';
 let currentPage = 1;
 
 async function fetchStockData(page = 1) {
     try {
+        // Construct the request URL with the CORS proxy
         const url = `${corsProxy}${baseUrl}?access_key=${apiKey}&symbols=${symbol}&limit=10&offset=${(page - 1) * 10}`;
-        console.log("Request URL:", url); // Debugging: Log the full URL being requested
+        console.log("Request URL:", url); // Log URL for debugging
+
+        // Fetch the data
         const response = await fetch(url);
 
+        // Check for errors in the response
         if (!response.ok) {
             throw new Error(`Error: ${response.status} - ${response.statusText}`);
         }
@@ -17,6 +23,7 @@ async function fetchStockData(page = 1) {
         const data = await response.json();
         displayData(data);
         
+        // Enable or disable the previous button based on the page number
         document.getElementById('prevButton').disabled = page === 1;
     } catch (error) {
         console.error("Fetch Error:", error);
@@ -44,6 +51,7 @@ function displayData(data) {
     }
 }
 
+// Pagination button event listeners
 document.getElementById('nextButton').addEventListener('click', () => {
     currentPage++;
     fetchStockData(currentPage);
@@ -56,4 +64,5 @@ document.getElementById('prevButton').addEventListener('click', () => {
     }
 });
 
+// Fetch initial data
 fetchStockData(currentPage);
