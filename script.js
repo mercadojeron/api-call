@@ -1,28 +1,29 @@
+// Marketstack API key
 const apiKey = 'd0b0729f5493df0b1ad08db3f9b28b83';
 const baseUrl = 'https://api.marketstack.com/v1/eod';
 let currentPage = 1;
 
-// Fetch stock data with pagination support
+// Function to fetch stock data with pagination
 async function fetchStockData(page = 1) {
     try {
         const response = await fetch(`${baseUrl}?access_key=${apiKey}&limit=10&offset=${(page - 1) * 10}`);
-        if (!response.ok) throw new Error(`Error: ${response.status}`);
+        if (!response.ok) throw new Error(`Error: ${response.status} - ${response.statusText}`);
         
         const data = await response.json();
         displayData(data);
-        
-        // Enable or disable buttons based on page
+
+        // Enable or disable pagination buttons
         document.getElementById('prevButton').disabled = page === 1;
     } catch (error) {
-        console.error(error);
-        alert('Failed to fetch data. Please try again later.');
+        console.error("Fetch Error:", error);
+        alert(`Failed to fetch data: ${error.message}`);
     }
 }
 
-// Display data in HTML
+// Function to display data in the HTML container
 function displayData(data) {
     const container = document.getElementById('dataContainer');
-    container.innerHTML = ''; // Clear previous data
+    container.innerHTML = ''; // Clear any previous data
 
     if (data.data && data.data.length > 0) {
         data.data.forEach(item => {
@@ -40,7 +41,7 @@ function displayData(data) {
     }
 }
 
-// Button listeners
+// Pagination button event listeners
 document.getElementById('nextButton').addEventListener('click', () => {
     currentPage++;
     fetchStockData(currentPage);
